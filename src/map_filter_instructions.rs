@@ -11,8 +11,8 @@ struct InstructionFilterParams {
 #[substreams::handlers::map]
 fn map_filter_instructions(params: String, blk: Block) -> Result<Instructions, substreams::errors::Error> {
     let filters = parse_filters_from_params(params)?;
-
-    substreams::log::info!("Applying filters to block");
+    
+    substreams::log::info!("Applying filters to block: {:?}", filters);
 
     let instructions : Vec<Instruction> = blk.transactions().flat_map(|tx| {
         let msg = tx.transaction.as_ref().unwrap().message.as_ref().unwrap();
