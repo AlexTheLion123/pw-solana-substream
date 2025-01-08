@@ -2,6 +2,19 @@
 
 The Solana Explorer consists of several Substreams modules showcasing the most basic operations that you can perform with Substreams on the Solana blockchain.
 
+
+[Here's](https://github.com/AlexTheLion123/pw-solana-substream/blob/9b8f3feb36f85e8a281c3fbde56ade3ec0cebbe7/src/map_filter_instructions.rs#L12-L33) the relevant part
+
+Use this command: 
+`substreams gui -e devnet.sol.streamingfast.io:443 substreams.yaml map_filter_instructions --start-block 350490474 --stop-block +1`
+
+You can use logs as shown here:
+https://github.com/AlexTheLion123/pw-solana-substream/blob/9b8f3feb36f85e8a281c3fbde56ade3ec0cebbe7/src/map_filter_instructions.rs#L15
+
+You will need to run `make build` after every change to a .rs file.
+
+You need to get an api token and set the environment variable as shown [here](https://docs.substreams.dev/reference-material/substreams-cli/authentication) 
+
 ## Before You Begin
 
 Make sure you have the [Substreams CLI installed](https://substreams.streamingfast.io/getting-started/installing-the-cli), and you know the [basic structure of a Substreams module](https://substreams.streamingfast.io/documentation/intro-getting-started/intro-solana). You must also provide an [authentication token](https://substreams.streamingfast.io/documentation/consume/authentication).
