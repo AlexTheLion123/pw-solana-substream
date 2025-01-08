@@ -6,7 +6,7 @@ The Solana Explorer consists of several Substreams modules showcasing the most b
 [Here's](https://github.com/AlexTheLion123/pw-solana-substream/blob/9b8f3feb36f85e8a281c3fbde56ade3ec0cebbe7/src/map_filter_instructions.rs#L12-L33) the relevant part
 
 Use this command: 
-`substreams gui -e devnet.sol.streamingfast.io:443 substreams.yaml map_filter_instructions --start-block 350490474 --stop-block +1`
+```substreams gui -e devnet.sol.streamingfast.io:443 substreams.yaml map_filter_instructions --start-block 350490474 --stop-block +1```
 
 You can use logs as shown here:
 https://github.com/AlexTheLion123/pw-solana-substream/blob/9b8f3feb36f85e8a281c3fbde56ade3ec0cebbe7/src/map_filter_instructions.rs#L15
