@@ -1,4 +1,5 @@
 use crate::pb::sol::transactions::v1::{Instruction, Transaction, Transactions};
+use crate::parser;
 use anyhow::anyhow;
 use serde::Deserialize;
 use substreams_solana::pb::sf::solana::r#type::v1::{Block, ConfirmedTransaction};
@@ -27,11 +28,11 @@ fn map_filter_transactions(params: String, blk: Block) -> Result<Transactions, V
                 .map(|inst| Instruction {
                     program_id: bs58::encode(acct_keys[inst.program_id_index as usize].to_vec()).into_string(),
                     accounts: inst
-                        .accounts
-                        .iter()
-                        .map(|acct| bs58::encode(acct_keys[*acct as usize].to_vec()).into_string())
-                        .collect(),
-                    data: bs58::encode(&inst.data).into_string(),
+                            .accounts
+                            .iter()
+                            .map(|acct| bs58::encode(acct_keys[*acct as usize].to_vec()).into_string())
+                            .collect(),
+                    data: parser::parse_ix_data(&inst.data)
                 })
                 .collect();
 

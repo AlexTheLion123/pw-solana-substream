@@ -7,18 +7,65 @@ message Instructions {
   repeated Instruction instructions = 1;
 }
 
-message Instruction {
-  string program_id = 1;
-  repeated string accounts = 2;
-  string data = 3;
-}
-
 message Transactions {
   repeated Transaction transactions = 1;
 }
 
 message Transaction {
   repeated string signatures = 1;
-
   repeated Instruction instructions = 2;
+}
+
+
+enum OperationalStatus {
+    BettingActive = 0;
+    BettingPaused = 1;
+    ClaimingPaused = 2;
+    Paused = 3;
+}
+
+message BetData {
+    uint64 amount = 1;
+    uint64 min_odds = 2;
+    uint32 free_bet_id = 3;
+    bool is_live_bet = 4;
+    bool is_sol_free = 5;
+    bytes selections = 6;
+}
+
+enum BetStatus {
+    Pending = 0;
+    Active = 1;
+    Failed = 2;
+    Claimed = 3;
+    Lost = 4;
+}
+
+message BetConfirmation {
+  BetStatus status = 1;
+  uint32 bet_id = 2;
+}
+
+
+message Instruction {
+  string program_id = 1;
+  repeated string accounts = 2;
+  oneof data {
+    BetData PlaceBet = 3;
+    BetData PlaceFreeBet = 4;
+    bool CancelBet = 5;
+    BetConfirmation ConfirmBet = 6;
+    uint64 ClaimBet = 7;
+
+    int64 SetCancellationDelay = 8;
+    OperationalStatus SetOperationalStatus = 9;
+    uint64 SetServiceFee = 10;
+    uint64 SetRelayerFee = 11;
+
+    uint64 WithdrawFromPool = 12;
+    uint64 WithdrawFromFeeAccount = 13;
+
+    bool InitializeProgram = 14;
+    bool ClearBetAccounts = 15;
+  }
 }

@@ -2,6 +2,8 @@ use anyhow::anyhow;
 use serde::Deserialize;
 use substreams_solana::pb::sf::solana::r#type::v1::{Block, CompiledInstruction};
 use crate::pb::sol::transactions::v1::{Instruction, Instructions};
+use crate::parser;
+
 
 #[derive(Deserialize, Debug)]
 struct InstructionFilterParams {
@@ -10,8 +12,7 @@ struct InstructionFilterParams {
 
 #[substreams::handlers::map]
 fn map_filter_instructions(params: String, blk: Block) -> Result<Instructions, substreams::errors::Error> {
-    let filters = parse_filters_from_params(params)?;
-    
+    let filters = parse_filters_from_params(params)?;    
     substreams::log::info!("Applying filters to block: {:?}", filters);
 
     let instructions : Vec<Instruction> = blk.transactions().flat_map(|tx| {
@@ -21,12 +22,12 @@ fn map_filter_instructions(params: String, blk: Block) -> Result<Instructions, s
         msg.instructions.iter()
             .filter(|inst| apply_filter(inst, &filters, &acct_keys))
             .map(|inst| {
-            Instruction {
-                program_id: bs58::encode(acct_keys[inst.program_id_index as usize].to_vec()).into_string(),
-                accounts: inst.accounts.iter().map(|acct| bs58::encode(acct_keys[*acct as usize].to_vec()).into_string()).collect(),
-                data: bs58::encode(&inst.data).into_string(),
-            }
-        }).collect::<Vec<_>>()
+                Instruction {
+                    program_id: bs58::encode(acct_keys[inst.program_id_index as usize].to_vec()).into_string(),
+                    accounts: inst.accounts.iter().map(|acct| bs58::encode(acct_keys[*acct as usize].to_vec()).into_string()).collect(),
+                    data: parser::parse_ix_data(&inst.data)
+                }
+            }).collect::<Vec<_>>()
     }).collect();
 
     Ok(Instructions { instructions })
