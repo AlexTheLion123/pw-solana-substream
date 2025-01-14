@@ -25,14 +25,24 @@ fn map_filter_transactions(params: String, blk: Block) -> Result<Transactions, V
             let insts: Vec<Instruction> = msg
                 .instructions
                 .iter()
-                .map(|inst| Instruction {
-                    program_id: bs58::encode(acct_keys[inst.program_id_index as usize].to_vec()).into_string(),
-                    accounts: inst
-                            .accounts
-                            .iter()
-                            .map(|acct| bs58::encode(acct_keys[*acct as usize].to_vec()).into_string())
-                            .collect(),
-                    data: parser::parse_ix_data(&inst.data)
+                .filter_map(|inst| {
+                    let data = parser::parse_ix_data(&inst.data);
+
+                    if data.is_some() {
+                        let ix = Instruction {
+                            program_id: bs58::encode(acct_keys[inst.program_id_index as usize].to_vec()).into_string(),
+                            accounts: inst
+                                    .accounts
+                                    .iter()
+                                    .map(|acct| bs58::encode(acct_keys[*acct as usize].to_vec()).into_string())
+                                    .collect(),
+                            data
+                        };
+
+                        return core::option::Option::Some(ix);
+                    }
+
+                    core::option::Option::None
                 })
                 .collect();
 

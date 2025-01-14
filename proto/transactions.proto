@@ -24,13 +24,18 @@ enum OperationalStatus {
     Paused = 3;
 }
 
+message BetCondition {
+  string condition = 1;
+  uint32 outcome = 2;
+}
+
 message BetData {
     uint64 amount = 1;
     uint64 min_odds = 2;
     uint32 free_bet_id = 3;
     bool is_live_bet = 4;
     bool is_sol_free = 5;
-    bytes selections = 6;
+    repeated BetCondition selections = 6;
 }
 
 enum BetStatus {
