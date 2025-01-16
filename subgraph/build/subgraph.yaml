@@ -1,0 +1,19 @@
+specVersion: 1.0.0
+description: pinwin-solana-substream Substreams-powered-Subgraph
+indexerHints:
+  prune: auto
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: substreams
+    name: pinwin-solana-substream
+    network: solana-devnet
+    source:
+      package:
+        moduleName: map_filter_instructions
+        file: pinwin-solana-substream/pinwin-solana-substream-v0.2.0.spkg
+    mapping:
+      apiVersion: 0.0.7
+      kind: substreams/graph-entities
+      file: pinwin-solana-substream/pinwin-solana-substream.wasm
+      handler: handleTriggers
