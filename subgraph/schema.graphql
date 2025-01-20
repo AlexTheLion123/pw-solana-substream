@@ -1,3 +1,51 @@
 type MyEntity @entity {
     id: ID!
 }
+
+type Bet @entity {
+  id: ID!
+  account: String!        # PublicKey as a base58-encoded string
+  bettor: String!         # PublicKey as a base58-encoded string
+  placedAt: Record!       # Use a custom scalar for BigInt
+  confirmed: Record!
+  claimed: Record!
+  odds: BigInt!           # Use a custom scalar for BigInt
+  amount: BigInt!         # Use a custom scalar for BigInt
+  status: BetStatus!      # Enum type for BetStatus
+  isLive: Boolean!        # Boolean for live status
+  isSOLfree: Boolean!     # Boolean for SOL-free status
+  selections: [Selection!]! # Array of Selection objects
+  betId: String           # Optional field for bet ID
+  freeBetId: Int          # Optional field for free bet ID
+  result: Result!         # Result object
+}
+
+type Record {
+  timestamp: BigInt!      # Use a custom scalar for BigInt
+  txHash: String!
+}
+
+# Enum type for BetStatus
+enum BetStatus {
+  PENDING
+  ACTIVE
+  FAILED
+  CLAIMED
+  LOST
+}
+
+# Type for Selection
+type Selection @entity {
+  # Define fields of Selection here
+  id: ID!              # Example field (replace with actual fields)
+  conditionId: String! # Example field (replace with actual fields)
+  outcomeId: String!   # Example field (replace with actual fields)
+}
+
+# Type for Result
+enum Result {
+  WIN
+  LOST
+  REFUND
+  PENDING
+}
