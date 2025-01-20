@@ -3,14 +3,11 @@ type MyEntity @entity {
 }
 
 type Bet @entity {
-  id: ID!
-  account: String!        # PublicKey as a base58-encoded string
-  bettor: String!         # PublicKey as a base58-encoded string
+  id: ID!                 # PublicKey of the bet account as a base58-encoded string
+  account: String!        # PublicKey of the bet account as a base58-encoded string
+  bettor: String!         # PublicKey of the bettor as a base58-encoded string
   placedAt: BigInt!       # Use a custom scalar for BigInt
-  placed: Record!
-  confirmed: Record!
-  claimed: Record!
-  odds: BigInt!           # Use a custom scalar for BigInt
+  minOdds: BigInt!        # odds requested, Use a custom scalar for BigInt
   amount: BigInt!         # Use a custom scalar for BigInt
   status: BetStatus!      # Enum type for BetStatus
   isLive: Boolean!        # Boolean for live status
@@ -18,7 +15,11 @@ type Bet @entity {
   selections: [Selection!]! # Array of Selection objects
   betId: String           # Optional field for bet ID
   freeBetId: Int          # Optional field for free bet ID
-  result: Result!         # Result object
+  result: Result!         # Result Enum
+  settledOdds: BigInt!    # odds settled at, Use a custom scalar for BigInt
+  placed: Record!         # Record of txHash and timestamp for record keeping
+  confirmed: Record!      # Record of txHash and timestamp for record keeping
+  claimed: Record!        # Record of txHash and timestamp for record keeping
 }
 
 type Record {
@@ -32,7 +33,7 @@ enum BetStatus {
   ACTIVE
   FAILED
   CLAIMED
-  LOST
+  CANCELED
 }
 
 # Type for Selection
@@ -45,8 +46,8 @@ type Selection @entity {
 
 # Type for Result
 enum Result {
+  PENDING
   WIN
   LOST
   REFUND
-  PENDING
 }
