@@ -20,20 +20,29 @@ export function handleTriggers(bytes: Uint8Array): void {
     switch (true){
 
       case ("placeBet" in ix || "placeFreeBet" in ix):
-        accountAddr = ix.accounts[2 + Number("placeFreeBet" in ix)] //is 2 in placeBet and 3 in placeFreeBet
+        let functionName: string
+        let accountAddrIndex: number
+        if("placeBet" in ix){
+          functionName = "placeBet"
+          accountAddrIndex = 2
+        }else{
+          functionName = "placeFreeBet"
+          accountAddrIndex = 3
+        }
+        accountAddr = ix.accounts[accountAddrIndex] //is 2 in placeBet and 3 in placeFreeBet
         entity = new Bet(accountAddr)
         entity.account = accountAddr
         entity.bettor = ix.accounts[0]
         entity.placedAt = ix.timestamp //in unix seconds, might need to convert from ms to s. 
-        entity.minOdds = ix.placeBet.minOdds
+        entity.minOdds = ix[functionName].minOdds
         entity.settledOdds = null
-        entity.amount = ix.placeBet.minOdds
+        entity.amount = ix[functionName].minOdds
         entity.status = "PENDING"
-        entity.isLive = ix.placeBet.isLiveBet
-        entity.isSOLfree = ix.placeBet.isSolFree
-        entity.selections = ix.placeBet.selections
+        entity.isLive = ix[functionName].isLiveBet
+        entity.isSOLfree = ix[functionName].isSolFree
+        entity.selections = ix[functionName].selections
         entity.betId = 0
-        entity.freeBetId = ix.placeBet.freeBetId //this might be 0 in non-free bet or it might error so set as null
+        entity.freeBetId = ix[functionName].freeBetId //this might be 0 in non-free bet or it might error so set as null
         entity.result = "PENDING"
         entity.placed = {timestamp: ix.timestamp, txHash: ix.txHash}
         entity.confirmed = null
@@ -48,7 +57,7 @@ export function handleTriggers(bytes: Uint8Array): void {
         entity.claimed = {timestamp: ix.timestamp, txHash: ix.txHash}
         entity.save()
 
-        case("confirmBet" in ix):
+      case("confirmBet" in ix):
         accountAddr = ix.accounts[1]
         entity = new Bet(accountAddr)
         entity.status = ix.confirmBet.status
