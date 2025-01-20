@@ -6,7 +6,8 @@ type Bet @entity {
   id: ID!
   account: String!        # PublicKey as a base58-encoded string
   bettor: String!         # PublicKey as a base58-encoded string
-  placedAt: Record!       # Use a custom scalar for BigInt
+  placedAt: BigInt!       # Use a custom scalar for BigInt
+  placed: Record!
   confirmed: Record!
   claimed: Record!
   odds: BigInt!           # Use a custom scalar for BigInt
