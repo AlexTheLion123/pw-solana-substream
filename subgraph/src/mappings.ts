@@ -1,8 +1,9 @@
 import { Protobuf } from "as-proto/assembly";
 import { Reader } from "as-proto/assembly";
 import { Instructions } from "./pb/sol/transactions/v1/Instructions";
-import { Bet } from "../generated/schema";
-import { BigInt, log, crypto, Bytes} from "@graphprotocol/graph-ts";
+import { Bet, Selection } from "../generated/schema";
+import { BigInt, log, crypto, Bytes } from "@graphprotocol/graph-ts";
+import { BigDecimal } from "@graphprotocol/graph-ts"
 
 export function handleTriggers(bytes: Uint8Array): void {
   const input = Protobuf.decode<Instructions>(bytes, Instructions.decode);
@@ -15,70 +16,94 @@ export function handleTriggers(bytes: Uint8Array): void {
     txHash
   }
   */
-  input.instructions.forEach(ix => {
-    let accountAddr: String, entity: Bet
-    switch (true){
+  // first, extend the generated Instruction type with an index signature
+  // type ExtendedInstruction = typeof input.instructions[0] & { [key: string]: any }
 
-      case ("placeBet" in ix || "placeFreeBet" in ix):
-        let functionName: string
-        let accountAddrIndex: number
-        if("placeBet" in ix){
-          functionName = "placeBet"
-          accountAddrIndex = 2
-        }else{
-          functionName = "placeFreeBet"
-          accountAddrIndex = 3
-        }
-        accountAddr = ix.accounts[accountAddrIndex] //is 2 in placeBet and 3 in placeFreeBet
-        entity = new Bet(accountAddr)
-        entity.account = accountAddr
-        entity.bettor = ix.accounts[0]
-        entity.placedAt = ix.timestamp //in unix seconds, might need to convert from ms to s. 
-        entity.minOdds = ix[functionName].minOdds
-        entity.settledOdds = null
-        entity.amount = ix[functionName].minOdds
-        entity.status = "PENDING"
-        entity.isLive = ix[functionName].isLiveBet
-        entity.isSOLfree = ix[functionName].isSolFree
-        entity.selections = ix[functionName].selections
-        entity.betId = 0
-        entity.freeBetId = ix[functionName].freeBetId //this might be 0 in non-free bet or it might error so set as null
-        entity.result = "PENDING"
-        entity.placed = {timestamp: ix.timestamp, txHash: ix.txHash}
-        entity.confirmed = null
-        entity.claimed = null
-        entity.save()
-        //break; //for some reason typescript doesnt like me adding breaks
-        
-      case("cancelBet" in ix):
-        accountAddr = ix.accounts[2]
-        entity = new Bet(accountAddr)
-        entity.status = "CANCELED"
-        entity.claimed = {timestamp: ix.timestamp, txHash: ix.txHash}
-        entity.save()
+  input.instructions.forEach((ix) => {
+    let accountAddr: string
+    let entity: Bet | null
+    let accountAddrIndex: number
 
-      case("confirmBet" in ix):
-        accountAddr = ix.accounts[1]
-        entity = new Bet(accountAddr)
-        entity.status = ix.confirmBet.status
-        entity.betId = ix.confirmBet.betId
-        entity.confirmed = {timestamp: ix.timestamp, txHash: ix.txHash}
-        entity.save()
+    if (ix.placeBet !== null) {
+      accountAddrIndex = 2
+      accountAddr = ix.accounts[accountAddrIndex as i32]
+      entity = new Bet(accountAddr)
 
-      case("claimBet" in ix):
-        accountAddr = ix.accounts[7]
-        entity = Bet.load(accountAddr)
-        const payout = ix.claimBet
-        if(payout > 0){
-          entity.settledOdds = payout / entity.amount
-          entity.result = (payout == entity.amount) ? "REFUND" : "WON"
-        }else{
-          entity.result = "LOST"
-        }
-        entity.status = "CLAIMED"
-        entity.claimed = {timestamp: ix.timestamp, txHash: ix.txHash}
-        entity.save()
+      entity.account = accountAddr
+      entity.bettor = ix.accounts[0]
+
+      entity.minOdds = BigDecimal.fromString(ix.placeBet!.minOdds.toString())
+      entity.settledOdds = BigDecimal.fromString("0")
+      entity.amount = BigDecimal.fromString(ix.placeBet!.minOdds.toString())
+      entity.status = "PENDING"
+      entity.isLive = !!ix.placeBet!.isLiveBet
+      entity.isSOLfree = !!ix.placeBet!.isSolFree
+
+      entity.betId = 0
+      entity.freeBetId = ix.placeBet!.freeBetId || 0
+      entity.result = "PENDING"
+
+      entity.confirmed = ""
+      entity.claimed = ""
+      entity.save()
+    }
+    else if (ix.placeFreeBet !== null) {
+      accountAddrIndex = 3
+
+      accountAddr = ix.accounts[accountAddrIndex as i32]
+      entity = new Bet(accountAddr)
+
+      entity.account = accountAddr
+      entity.bettor = ix.accounts[0]
+
+      entity.minOdds = BigDecimal.fromString(ix.placeFreeBet!.minOdds.toString())
+      entity.settledOdds = BigDecimal.fromString("0")
+      entity.amount = BigDecimal.fromString(ix.placeFreeBet!.minOdds.toString())
+      entity.status = "PENDING"
+      entity.isLive = !!ix.placeFreeBet!.isLiveBet
+      entity.isSOLfree = !!ix.placeFreeBet!.isSolFree
+
+      entity.betId = 0
+      entity.freeBetId = ix.placeFreeBet!.freeBetId || 0
+      entity.result = "PENDING"
+
+      entity.confirmed = ""
+      entity.claimed = ""
+      entity.save()
+    }
+    else if (ix.cancelBet === true) {
+      accountAddr = ix.accounts[2]
+      entity = new Bet(accountAddr)
+      entity.status = "CANCELED"
+      entity.save()
+    }
+    else if (ix.confirmBet !== null) {
+      accountAddr = ix.accounts[1]
+      entity = new Bet(accountAddr)
+      entity.status = ix.confirmBet!.status.toString()
+      entity.betId = ix.confirmBet!.betId
+      entity.save()
+    }
+    else if (ix.claimBet !== 0) {
+      accountAddr = ix.accounts[7]
+      entity = Bet.load(accountAddr)
+
+      if (!entity) {
+        log.error("Bet not found for claimBet", [])
+        return
       }
+
+      const payout = ix.claimBet
+      if (payout > 0) {
+        entity.settledOdds = BigDecimal.fromString(payout.toString())
+          .div(BigDecimal.fromString(entity.amount.toString()))
+        entity.result = (BigDecimal.fromString(payout.toString()) == entity.amount) ? "REFUND" : "WON"
+      } else {
+        entity.result = "LOST"
+      }
+      entity.status = "CLAIMED"
+      entity.save()
+    }
   })
 
 }

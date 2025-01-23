@@ -7,27 +7,27 @@ type Bet @entity {
   account: String!        # PublicKey of the bet account as a base58-encoded string
   bettor: String!         # PublicKey of the bettor as a base58-encoded string
   placedAt: BigInt!       # Use a custom scalar for BigInt
-  minOdds: BigInt!        # odds requested, Use a custom scalar for BigInt
-  amount: BigInt!         # Use a custom scalar for BigInt
+  minOdds: BigDecimal!        # odds requested, Use a custom scalar for BigInt
+  amount: BigDecimal!         # Use a custom scalar for BigInt
   status: BetStatus!      # Enum type for BetStatus
   isLive: Boolean!        # Boolean for live status
   isSOLfree: Boolean!     # Boolean for SOL-free status
-  selections: [Selection!]! # Array of Selection objects
-  betId: String           # Optional field for bet ID
-  freeBetId: Int          # Optional field for free bet ID
+  # selections: [Selection!]! # Array of Selection objects
+  betId: Int!           # Optional field for bet ID
+  freeBetId: Int!          # Optional field for free bet ID
   result: Result!         # Result Enum
-  settledOdds: BigInt!    # odds settled at, Use a custom scalar for BigInt
+  settledOdds: BigDecimal!    # odds settled at, Use a custom scalar for BigInt
   placed: Record!         # Record of txHash and timestamp for record keeping
   confirmed: Record!      # Record of txHash and timestamp for record keeping
   claimed: Record!        # Record of txHash and timestamp for record keeping
 }
 
-type Record {
-  timestamp: BigInt!      # Use a custom scalar for BigInt
+type Record @entity{
+  id: ID!
+  timestamp: BigInt!
   txHash: String!
 }
 
-# Enum type for BetStatus
 enum BetStatus {
   PENDING
   ACTIVE
@@ -36,15 +36,12 @@ enum BetStatus {
   CANCELED
 }
 
-# Type for Selection
 type Selection @entity {
-  # Define fields of Selection here
-  id: ID!              # Example field (replace with actual fields)
-  conditionId: String! # Example field (replace with actual fields)
-  outcomeId: String!   # Example field (replace with actual fields)
+  id: ID!             
+  conditionId: String!
+  outcomeId: String!  
 }
 
-# Type for Result
 enum Result {
   PENDING
   WIN
