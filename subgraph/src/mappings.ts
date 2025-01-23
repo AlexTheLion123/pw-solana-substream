@@ -22,11 +22,10 @@ export function handleTriggers(bytes: Uint8Array): void {
   input.instructions.forEach((ix) => {
     let accountAddr: string
     let entity: Bet | null
-    let accountAddrIndex: number
 
     if (ix.placeBet !== null) {
-      accountAddrIndex = 2
-      accountAddr = ix.accounts[accountAddrIndex as i32]
+      accountAddr = ix.accounts[2];
+      // log.debug("Placing bet with account {}", [ix.accounts[2]]);
       entity = new Bet(accountAddr)
 
       entity.account = accountAddr
@@ -43,14 +42,12 @@ export function handleTriggers(bytes: Uint8Array): void {
       entity.freeBetId = ix.placeBet!.freeBetId || 0
       entity.result = "PENDING"
 
-      entity.confirmed = ""
-      entity.claimed = ""
+      // entity.confirmed = ""
+      // entity.claimed = ""
       entity.save()
     }
     else if (ix.placeFreeBet !== null) {
-      accountAddrIndex = 3
-
-      accountAddr = ix.accounts[accountAddrIndex as i32]
+      accountAddr = ix.accounts[3]
       entity = new Bet(accountAddr)
 
       entity.account = accountAddr
@@ -67,13 +64,14 @@ export function handleTriggers(bytes: Uint8Array): void {
       entity.freeBetId = ix.placeFreeBet!.freeBetId || 0
       entity.result = "PENDING"
 
-      entity.confirmed = ""
-      entity.claimed = ""
+      // entity.confirmed = ""
+      // entity.claimed = ""
       entity.save()
     }
     else if (ix.cancelBet === true) {
       accountAddr = ix.accounts[2]
       entity = new Bet(accountAddr)
+
       entity.status = "CANCELED"
       entity.save()
     }

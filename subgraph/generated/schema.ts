@@ -116,19 +116,6 @@ export class Bet extends Entity {
     this.set("bettor", Value.fromString(value));
   }
 
-  get placedAt(): BigInt {
-    let value = this.get("placedAt");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set placedAt(value: BigInt) {
-    this.set("placedAt", Value.fromBigInt(value));
-  }
-
   get minOdds(): BigDecimal {
     let value = this.get("minOdds");
     if (!value || value.kind == ValueKind.NULL) {
@@ -244,45 +231,6 @@ export class Bet extends Entity {
 
   set settledOdds(value: BigDecimal) {
     this.set("settledOdds", Value.fromBigDecimal(value));
-  }
-
-  get placed(): string {
-    let value = this.get("placed");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toString();
-    }
-  }
-
-  set placed(value: string) {
-    this.set("placed", Value.fromString(value));
-  }
-
-  get confirmed(): string {
-    let value = this.get("confirmed");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toString();
-    }
-  }
-
-  set confirmed(value: string) {
-    this.set("confirmed", Value.fromString(value));
-  }
-
-  get claimed(): string {
-    let value = this.get("claimed");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toString();
-    }
-  }
-
-  set claimed(value: string) {
-    this.set("claimed", Value.fromString(value));
   }
 }
 
