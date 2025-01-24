@@ -1,5 +1,5 @@
-use crate::pb::sol::transactions::v1::{Instruction, Transaction, Transactions};
 use crate::parser;
+use crate::pb::sol::transactions::v1::{Instruction, Transaction, Transactions};
 use anyhow::anyhow;
 use serde::Deserialize;
 use substreams_solana::pb::sf::solana::r#type::v1::{Block, ConfirmedTransaction};
@@ -12,6 +12,10 @@ struct TransactionFilterParams {
 #[substreams::handlers::map]
 fn map_filter_transactions(params: String, blk: Block) -> Result<Transactions, Vec<substreams::errors::Error>> {
     let filters = parse_filters_from_params(params)?;
+    let time = match &blk.block_time {
+        Some(unix_time_stamp) => unix_time_stamp.timestamp,
+        _ => 0,
+    };
 
     let mut transactions: Vec<Transaction> = Vec::new();
 
@@ -19,6 +23,11 @@ fn map_filter_transactions(params: String, blk: Block) -> Result<Transactions, V
         .iter()
         .filter(|tx| apply_filter(tx, &filters))
         .for_each(|tx| {
+            let tx_hash = match &tx.transaction {
+                Some(transaction) => bs58::encode(transaction.signatures[0].clone()).into_string(),
+                None => String::from("")
+            };
+
             let msg = tx.transaction.as_ref().unwrap().message.as_ref().unwrap();
             let acct_keys = tx.resolved_accounts();
 
@@ -32,11 +41,13 @@ fn map_filter_transactions(params: String, blk: Block) -> Result<Transactions, V
                         let ix = Instruction {
                             program_id: bs58::encode(acct_keys[inst.program_id_index as usize].to_vec()).into_string(),
                             accounts: inst
-                                    .accounts
-                                    .iter()
-                                    .map(|acct| bs58::encode(acct_keys[*acct as usize].to_vec()).into_string())
-                                    .collect(),
-                            data
+                                .accounts
+                                .iter()
+                                .map(|acct| bs58::encode(acct_keys[*acct as usize].to_vec()).into_string())
+                                .collect(),
+                            time,
+                            tx_hash: tx_hash.clone(),
+                            data,
                         };
 
                         return core::option::Option::Some(ix);

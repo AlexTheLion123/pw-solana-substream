@@ -55,22 +55,24 @@ message BetConfirmation {
 message Instruction {
   string program_id = 1;
   repeated string accounts = 2;
+  int64 time = 3;
+  string tx_hash = 4;
   oneof data {
-    BetData PlaceBet = 3;
-    BetData PlaceFreeBet = 4;
-    bool CancelBet = 5;
-    BetConfirmation ConfirmBet = 6;
-    uint64 ClaimBet = 7;
+    BetData PlaceBet = 5;
+    BetData PlaceFreeBet = 6;
+    bool CancelBet = 7;
+    BetConfirmation ConfirmBet = 8;
+    uint64 ClaimBet = 9;
 
-    int64 SetCancellationDelay = 8;
-    OperationalStatus SetOperationalStatus = 9;
-    uint64 SetServiceFee = 10;
-    uint64 SetRelayerFee = 11;
+    int64 SetCancellationDelay = 10;
+    OperationalStatus SetOperationalStatus = 11;
+    uint64 SetServiceFee = 12;
+    uint64 SetRelayerFee = 13;
 
-    uint64 WithdrawFromPool = 12;
-    uint64 WithdrawFromFeeAccount = 13;
+    uint64 WithdrawFromPool = 14;
+    uint64 WithdrawFromFeeAccount = 15;
 
-    bool InitializeProgram = 14;
-    bool ClearBetAccounts = 15;
+    bool InitializeProgram = 16;
+    bool ClearBetAccounts = 17;
   }
 }
