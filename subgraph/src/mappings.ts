@@ -1,8 +1,7 @@
 import { Protobuf } from "as-proto/assembly";
-import { Reader } from "as-proto/assembly";
 import { Instructions } from "./pb/sol/transactions/v1/Instructions";
-import { Bet, Selection } from "../generated/schema";
-import { BigInt, log, crypto, Bytes } from "@graphprotocol/graph-ts";
+import { Bet  } from "../generated/schema";
+import { log } from "@graphprotocol/graph-ts";
 import { BigDecimal } from "@graphprotocol/graph-ts"
 
 export function handleTriggers(bytes: Uint8Array): void {
@@ -19,7 +18,7 @@ export function handleTriggers(bytes: Uint8Array): void {
   // first, extend the generated Instruction type with an index signature
   // type ExtendedInstruction = typeof input.instructions[0] & { [key: string]: any }
 
-  input.instructions.forEach((ix) => {
+  input.instructions.forEach(ix => {
     let accountAddr: string
     let entity: Bet | null
 
@@ -77,8 +76,14 @@ export function handleTriggers(bytes: Uint8Array): void {
     }
     else if (ix.confirmBet !== null) {
       accountAddr = ix.accounts[1]
-      entity = new Bet(accountAddr)
-      entity.status = ix.confirmBet!.status.toString()
+      entity = Bet.load(accountAddr)
+
+      if (!entity) {
+        log.error("Bet not found for confirmBet with accountAddr: {}", [accountAddr])
+        return
+      }
+
+      entity.status = getStatusString(ix.confirmBet!.status)
       entity.betId = ix.confirmBet!.betId
       entity.save()
     }
@@ -106,3 +111,21 @@ export function handleTriggers(bytes: Uint8Array): void {
 
 }
 
+function getStatusString(value: i32): string {
+  switch (value) {
+    case 0:
+      return "PENDING"
+    case 1:
+      return "ACTIVE"
+    case 2:
+      return "FAILED"
+    case 3:
+      return "CLAIMED"
+    case 4:
+      return "LOST"
+    case 5:
+      return "CANCELLED"
+    default:
+      throw new Error("Unknown status value: " + value.toString())
+  }
+}

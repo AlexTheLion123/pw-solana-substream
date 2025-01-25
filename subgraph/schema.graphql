@@ -29,6 +29,7 @@ enum BetStatus {
   ACTIVE
   FAILED
   CLAIMED
+  LOST
   CANCELED
 }
 
