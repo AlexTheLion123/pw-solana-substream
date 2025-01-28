@@ -76,30 +76,43 @@ export class Bet extends Entity {
     this.set("bettor", Value.fromString(value));
   }
 
-  get minOdds(): BigDecimal {
+  get placedAt(): BigInt {
+    let value = this.get("placedAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set placedAt(value: BigInt) {
+    this.set("placedAt", Value.fromBigInt(value));
+  }
+
+  get minOdds(): BigInt {
     let value = this.get("minOdds");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBigDecimal();
+      return value.toBigInt();
     }
   }
 
-  set minOdds(value: BigDecimal) {
-    this.set("minOdds", Value.fromBigDecimal(value));
+  set minOdds(value: BigInt) {
+    this.set("minOdds", Value.fromBigInt(value));
   }
 
-  get amount(): BigDecimal {
+  get amount(): BigInt {
     let value = this.get("amount");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBigDecimal();
+      return value.toBigInt();
     }
   }
 
-  set amount(value: BigDecimal) {
-    this.set("amount", Value.fromBigDecimal(value));
+  set amount(value: BigInt) {
+    this.set("amount", Value.fromBigInt(value));
   }
 
   get status(): string {
@@ -141,6 +154,19 @@ export class Bet extends Entity {
     this.set("isSOLfree", Value.fromBoolean(value));
   }
 
+  get selections(): string {
+    let value = this.get("selections");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set selections(value: string) {
+    this.set("selections", Value.fromString(value));
+  }
+
   get betId(): i32 {
     let value = this.get("betId");
     if (!value || value.kind == ValueKind.NULL) {
@@ -180,17 +206,95 @@ export class Bet extends Entity {
     this.set("result", Value.fromString(value));
   }
 
-  get settledOdds(): BigDecimal {
+  get settledOdds(): BigInt {
     let value = this.get("settledOdds");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBigDecimal();
+      return value.toBigInt();
     }
   }
 
-  set settledOdds(value: BigDecimal) {
-    this.set("settledOdds", Value.fromBigDecimal(value));
+  set settledOdds(value: BigInt) {
+    this.set("settledOdds", Value.fromBigInt(value));
+  }
+
+  get placedTimestamp(): BigInt {
+    let value = this.get("placedTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set placedTimestamp(value: BigInt) {
+    this.set("placedTimestamp", Value.fromBigInt(value));
+  }
+
+  get placedTxHash(): string {
+    let value = this.get("placedTxHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set placedTxHash(value: string) {
+    this.set("placedTxHash", Value.fromString(value));
+  }
+
+  get confirmedTimestamp(): BigInt {
+    let value = this.get("confirmedTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set confirmedTimestamp(value: BigInt) {
+    this.set("confirmedTimestamp", Value.fromBigInt(value));
+  }
+
+  get confirmedTxHash(): string {
+    let value = this.get("confirmedTxHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set confirmedTxHash(value: string) {
+    this.set("confirmedTxHash", Value.fromString(value));
+  }
+
+  get claimedTimestamp(): BigInt {
+    let value = this.get("claimedTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set claimedTimestamp(value: BigInt) {
+    this.set("claimedTimestamp", Value.fromBigInt(value));
+  }
+
+  get claimedTxHash(): string {
+    let value = this.get("claimedTxHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set claimedTxHash(value: string) {
+    this.set("claimedTxHash", Value.fromString(value));
   }
 }
 
@@ -323,5 +427,18 @@ export class Selection extends Entity {
 
   set outcomeId(value: string) {
     this.set("outcomeId", Value.fromString(value));
+  }
+
+  get bet(): string {
+    let value = this.get("bet");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set bet(value: string) {
+    this.set("bet", Value.fromString(value));
   }
 }

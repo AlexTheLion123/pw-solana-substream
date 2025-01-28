@@ -1,23 +1,13 @@
 import { Protobuf } from "as-proto/assembly";
 import { Instructions } from "./pb/sol/transactions/v1/Instructions";
-import { Bet  } from "../generated/schema";
+import { Bet, Selection } from "../generated/schema";
 import { log } from "@graphprotocol/graph-ts";
-import { BigDecimal } from "@graphprotocol/graph-ts"
+import { BigInt } from "@graphprotocol/graph-ts"
+import { JSON } from "assemblyscript-json";
 
 export function handleTriggers(bytes: Uint8Array): void {
   const input = Protobuf.decode<Instructions>(bytes, Instructions.decode);
-  /*assumed ix is changed to 
-  ix = {
-    accounts[],
-    [instructionType]: {data},
-    programId,
-    timestamp,
-    txHash
-  }
-  */
-  // first, extend the generated Instruction type with an index signature
-  // type ExtendedInstruction = typeof input.instructions[0] & { [key: string]: any }
-
+  
   input.instructions.forEach(ix => {
     let accountAddr: string
     let entity: Bet | null
@@ -30,9 +20,9 @@ export function handleTriggers(bytes: Uint8Array): void {
       entity.account = accountAddr
       entity.bettor = ix.accounts[0]
 
-      entity.minOdds = BigDecimal.fromString(ix.placeBet!.minOdds.toString())
-      entity.settledOdds = BigDecimal.fromString("0")
-      entity.amount = BigDecimal.fromString(ix.placeBet!.minOdds.toString())
+      entity.minOdds = new BigInt(ix.placeBet!.minOdds)
+      entity.settledOdds = new BigInt(0)
+      entity.amount = new BigInt(ix.placeBet!.amount)
       entity.status = "PENDING"
       entity.isLive = !!ix.placeBet!.isLiveBet
       entity.isSOLfree = !!ix.placeBet!.isSolFree
@@ -41,8 +31,13 @@ export function handleTriggers(bytes: Uint8Array): void {
       entity.freeBetId = ix.placeBet!.freeBetId || 0
       entity.result = "PENDING"
 
-      // entity.confirmed = ""
-      // entity.claimed = ""
+      // entity.confirmed = {
+      //   id: 'txHash',
+      //   timestamp: 0,
+      //   txHash: 0
+      // }
+      // entity.claimedTxHash = ix.claimBet
+      entity.selections = ix.placeBet.selections.toString()
       entity.save()
     }
     else if (ix.placeFreeBet !== null) {
@@ -52,9 +47,9 @@ export function handleTriggers(bytes: Uint8Array): void {
       entity.account = accountAddr
       entity.bettor = ix.accounts[0]
 
-      entity.minOdds = BigDecimal.fromString(ix.placeFreeBet!.minOdds.toString())
-      entity.settledOdds = BigDecimal.fromString("0")
-      entity.amount = BigDecimal.fromString(ix.placeFreeBet!.minOdds.toString())
+      entity.minOdds = new BigInt(ix.placeFreeBet!.minOdds)
+      entity.settledOdds = new BigInt(0)
+      entity.amount = new BigInt(ix.placeFreeBet!.amount)
       entity.status = "PENDING"
       entity.isLive = !!ix.placeFreeBet!.isLiveBet
       entity.isSOLfree = !!ix.placeFreeBet!.isSolFree
@@ -98,9 +93,8 @@ export function handleTriggers(bytes: Uint8Array): void {
 
       const payout = ix.claimBet
       if (payout > 0) {
-        entity.settledOdds = BigDecimal.fromString(payout.toString())
-          .div(BigDecimal.fromString(entity.amount.toString()))
-        entity.result = (BigDecimal.fromString(payout.toString()) == entity.amount) ? "REFUND" : "WON"
+        entity.settledOdds = new BigInt(payout).div(entity.amount)
+        entity.result = (new BigInt(payout) == entity.amount) ? "REFUND" : "WON"
       } else {
         entity.result = "LOST"
       }

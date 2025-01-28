@@ -12,8 +12,6 @@ dataSources:
       package:
         moduleName: map_filter_instructions
         file: ../pinwin-solana-substream-v0.2.0.spkg
-      startBlock: 344456032
-      # startBlock: 344663148
     mapping:
       apiVersion: 0.0.7
       kind: substreams/graph-entities
