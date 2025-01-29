@@ -20,9 +20,15 @@ export class Instruction {
       }
     }
 
+    writer.uint32(24);
+    writer.int64(message.time);
+
+    writer.uint32(34);
+    writer.string(message.txHash);
+
     const placeBet = message.placeBet;
     if (placeBet !== null) {
-      writer.uint32(26);
+      writer.uint32(42);
       writer.fork();
       BetData.encode(placeBet, writer);
       writer.ldelim();
@@ -30,48 +36,48 @@ export class Instruction {
 
     const placeFreeBet = message.placeFreeBet;
     if (placeFreeBet !== null) {
-      writer.uint32(34);
+      writer.uint32(50);
       writer.fork();
       BetData.encode(placeFreeBet, writer);
       writer.ldelim();
     }
 
-    writer.uint32(40);
+    writer.uint32(56);
     writer.bool(message.cancelBet);
 
     const confirmBet = message.confirmBet;
     if (confirmBet !== null) {
-      writer.uint32(50);
+      writer.uint32(66);
       writer.fork();
       BetConfirmation.encode(confirmBet, writer);
       writer.ldelim();
     }
 
-    writer.uint32(56);
+    writer.uint32(72);
     writer.uint64(message.claimBet);
 
-    writer.uint32(64);
+    writer.uint32(80);
     writer.int64(message.setCancellationDelay);
 
-    writer.uint32(72);
+    writer.uint32(88);
     writer.int32(message.setOperationalStatus);
 
-    writer.uint32(80);
+    writer.uint32(96);
     writer.uint64(message.setServiceFee);
 
-    writer.uint32(88);
+    writer.uint32(104);
     writer.uint64(message.setRelayerFee);
 
-    writer.uint32(96);
+    writer.uint32(112);
     writer.uint64(message.withdrawFromPool);
 
-    writer.uint32(104);
+    writer.uint32(120);
     writer.uint64(message.withdrawFromFeeAccount);
 
-    writer.uint32(112);
+    writer.uint32(128);
     writer.bool(message.initializeProgram);
 
-    writer.uint32(120);
+    writer.uint32(136);
     writer.bool(message.clearBetAccounts);
   }
 
@@ -91,54 +97,62 @@ export class Instruction {
           break;
 
         case 3:
-          message.placeBet = BetData.decode(reader, reader.uint32());
+          message.time = reader.int64();
           break;
 
         case 4:
-          message.placeFreeBet = BetData.decode(reader, reader.uint32());
+          message.txHash = reader.string();
           break;
 
         case 5:
-          message.cancelBet = reader.bool();
+          message.placeBet = BetData.decode(reader, reader.uint32());
           break;
 
         case 6:
-          message.confirmBet = BetConfirmation.decode(reader, reader.uint32());
+          message.placeFreeBet = BetData.decode(reader, reader.uint32());
           break;
 
         case 7:
-          message.claimBet = reader.uint64();
+          message.cancelBet = reader.bool();
           break;
 
         case 8:
-          message.setCancellationDelay = reader.int64();
+          message.confirmBet = BetConfirmation.decode(reader, reader.uint32());
           break;
 
         case 9:
-          message.setOperationalStatus = reader.int32();
+          message.claimBet = reader.uint64();
           break;
 
         case 10:
-          message.setServiceFee = reader.uint64();
+          message.setCancellationDelay = reader.int64();
           break;
 
         case 11:
-          message.setRelayerFee = reader.uint64();
+          message.setOperationalStatus = reader.int32();
           break;
 
         case 12:
-          message.withdrawFromPool = reader.uint64();
+          message.setServiceFee = reader.uint64();
           break;
 
         case 13:
-          message.withdrawFromFeeAccount = reader.uint64();
+          message.setRelayerFee = reader.uint64();
           break;
 
         case 14:
-          message.initializeProgram = reader.bool();
+          message.withdrawFromPool = reader.uint64();
           break;
 
         case 15:
+          message.withdrawFromFeeAccount = reader.uint64();
+          break;
+
+        case 16:
+          message.initializeProgram = reader.bool();
+          break;
+
+        case 17:
           message.clearBetAccounts = reader.bool();
           break;
 
@@ -153,6 +167,8 @@ export class Instruction {
 
   programId: string;
   accounts: Array<string>;
+  time: i64;
+  txHash: string;
   placeBet: BetData | null;
   placeFreeBet: BetData | null;
   cancelBet: bool;
@@ -170,6 +186,8 @@ export class Instruction {
   constructor(
     programId: string = "",
     accounts: Array<string> = [],
+    time: i64 = 0,
+    txHash: string = "",
     placeBet: BetData | null = null,
     placeFreeBet: BetData | null = null,
     cancelBet: bool = false,
@@ -186,6 +204,8 @@ export class Instruction {
   ) {
     this.programId = programId;
     this.accounts = accounts;
+    this.time = time;
+    this.txHash = txHash;
     this.placeBet = placeBet;
     this.placeFreeBet = placeFreeBet;
     this.cancelBet = cancelBet;

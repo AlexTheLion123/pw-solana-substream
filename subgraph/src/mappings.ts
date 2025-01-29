@@ -1,105 +1,164 @@
 import { Protobuf } from "as-proto/assembly";
 import { Instructions } from "./pb/sol/transactions/v1/Instructions";
-import { Bet, Selection } from "../generated/schema";
+import { Bet, Selection, Record, BetSelection } from "../generated/schema";
 import { log } from "@graphprotocol/graph-ts";
 import { BigInt } from "@graphprotocol/graph-ts"
-import { JSON } from "assemblyscript-json";
 
 export function handleTriggers(bytes: Uint8Array): void {
   const input = Protobuf.decode<Instructions>(bytes, Instructions.decode);
-  
+
   input.instructions.forEach(ix => {
     let accountAddr: string
-    let entity: Bet | null
+    let bet: Bet | null
+    let record: Record | null
+    // let betSelection: BetSelection | null
+    // let selection: Selection | null
 
     if (ix.placeBet !== null) {
       accountAddr = ix.accounts[2];
       // log.debug("Placing bet with account {}", [ix.accounts[2]]);
-      entity = new Bet(accountAddr)
+      bet = new Bet(accountAddr)
+      bet.account = accountAddr
+      bet.bettor = ix.accounts[0]
+      bet.minOdds = BigInt.fromU64(ix.placeBet!.minOdds)
+      bet.settledOdds = new BigInt(0)
+      bet.amount = BigInt.fromU64(ix.placeBet!.amount)
+      bet.status = "PENDING"
+      bet.isLive = !!ix.placeBet!.isLiveBet
+      bet.isSOLfree = !!ix.placeBet!.isSolFree
 
-      entity.account = accountAddr
-      entity.bettor = ix.accounts[0]
+      bet.betId = 0
+      bet.freeBetId = ix.placeBet!.freeBetId || 0
+      bet.result = "PENDING"
+      bet.save()
 
-      entity.minOdds = new BigInt(ix.placeBet!.minOdds)
-      entity.settledOdds = new BigInt(0)
-      entity.amount = new BigInt(ix.placeBet!.amount)
-      entity.status = "PENDING"
-      entity.isLive = !!ix.placeBet!.isLiveBet
-      entity.isSOLfree = !!ix.placeBet!.isSolFree
+      record = new Record(bet.id)
+      record.betPlaced = bet.id
+      record.save()
 
-      entity.betId = 0
-      entity.freeBetId = ix.placeBet!.freeBetId || 0
-      entity.result = "PENDING"
+      for (let i = 0; i < ix.placeBet!.selections.length; i++) {
+        const _selection = ix.placeBet!.selections[i]
+        const selection = new Selection(_selection.condition + _selection.outcome.toString())
+        selection.conditionId = _selection.condition
+        selection.outcomeId = _selection.outcome.toString()
+        selection.save()
+      
+        const betSelection = new BetSelection(accountAddr)
+        betSelection.bet = accountAddr
+        betSelection.selection = selection.id
+        betSelection.save()
+      }
 
-      // entity.confirmed = {
-      //   id: 'txHash',
-      //   timestamp: 0,
-      //   txHash: 0
-      // }
-      // entity.claimedTxHash = ix.claimBet
-      entity.selections = ix.placeBet.selections.toString()
-      entity.save()
     }
     else if (ix.placeFreeBet !== null) {
       accountAddr = ix.accounts[3]
-      entity = new Bet(accountAddr)
+      bet = new Bet(accountAddr)
 
-      entity.account = accountAddr
-      entity.bettor = ix.accounts[0]
+      bet.account = accountAddr
+      bet.bettor = ix.accounts[0]
 
-      entity.minOdds = new BigInt(ix.placeFreeBet!.minOdds)
-      entity.settledOdds = new BigInt(0)
-      entity.amount = new BigInt(ix.placeFreeBet!.amount)
-      entity.status = "PENDING"
-      entity.isLive = !!ix.placeFreeBet!.isLiveBet
-      entity.isSOLfree = !!ix.placeFreeBet!.isSolFree
+      bet.minOdds = BigInt.fromU64(ix.placeFreeBet!.minOdds)
+      bet.settledOdds = new BigInt(0)
+      bet.amount = BigInt.fromU64(ix.placeFreeBet!.amount)
+      bet.status = "PENDING"
+      bet.isLive = !!ix.placeFreeBet!.isLiveBet
+      bet.isSOLfree = !!ix.placeFreeBet!.isSolFree
 
-      entity.betId = 0
-      entity.freeBetId = ix.placeFreeBet!.freeBetId || 0
-      entity.result = "PENDING"
+      bet.betId = 0
+      bet.freeBetId = ix.placeFreeBet!.freeBetId || 0
+      bet.result = "PENDING"
+      bet.save()
 
-      // entity.confirmed = ""
-      // entity.claimed = ""
-      entity.save()
+      record = new Record(bet.id)
+      record.betPlaced = bet.id
+      record.save()
+
+      for (let i = 0; i < ix.placeFreeBet!.selections.length; i++) {
+        const _selection = ix.placeFreeBet!.selections[i]
+        const selection = new Selection(_selection.condition + _selection.outcome.toString())
+        selection.conditionId = _selection.condition
+        selection.outcomeId = _selection.outcome.toString()
+        selection.save()
+      
+        const betSelection = new BetSelection(accountAddr)
+        betSelection.bet = accountAddr
+        betSelection.selection = selection.id
+        betSelection.save()
+      }
     }
     else if (ix.cancelBet === true) {
       accountAddr = ix.accounts[2]
-      entity = new Bet(accountAddr)
+      bet = Bet.load(accountAddr)
 
-      entity.status = "CANCELED"
-      entity.save()
+      if (!bet) {
+        log.error("Bet not found for cancelBet", [])
+        return
+      }
+
+      bet.status = "CANCELED"
+      bet.save()
+
+      record = Record.load(accountAddr)
+
+      if (!record) {
+        log.error("Record not found for cancelBet", [])
+        return
+      }
+
+      record.betCanceled = bet.id
+      record.save()
     }
     else if (ix.confirmBet !== null) {
       accountAddr = ix.accounts[1]
-      entity = Bet.load(accountAddr)
+      bet = Bet.load(accountAddr)
 
-      if (!entity) {
+      if (!bet) {
         log.error("Bet not found for confirmBet with accountAddr: {}", [accountAddr])
         return
       }
 
-      entity.status = getStatusString(ix.confirmBet!.status)
-      entity.betId = ix.confirmBet!.betId
-      entity.save()
+      bet.status = getStatusString(ix.confirmBet!.status)
+      bet.betId = ix.confirmBet!.betId
+      bet.save()
+
+      record = Record.load(accountAddr)
+
+      if (!record) {
+        log.error("Record not found for confirmBet", [])
+        return
+      }
+
+      record.betConfirmed = bet.id
+      record.save()
     }
     else if (ix.claimBet !== 0) {
       accountAddr = ix.accounts[7]
-      entity = Bet.load(accountAddr)
+      bet = Bet.load(accountAddr)
 
-      if (!entity) {
+      if (!bet) {
         log.error("Bet not found for claimBet", [])
         return
       }
 
       const payout = ix.claimBet
       if (payout > 0) {
-        entity.settledOdds = new BigInt(payout).div(entity.amount)
-        entity.result = (new BigInt(payout) == entity.amount) ? "REFUND" : "WON"
+        bet.settledOdds = BigInt.fromU64(payout).div(bet.amount)
+        bet.result = (BigInt.fromU64(payout) == bet.amount) ? "REFUND" : "WON"
       } else {
-        entity.result = "LOST"
+        bet.result = "LOST"
       }
-      entity.status = "CLAIMED"
-      entity.save()
+      bet.status = "CLAIMED"
+      bet.save()
+
+      record = Record.load(accountAddr)
+
+      if (!record) {
+        log.error("Record not found for claimBet", [])
+        return
+      }
+
+      record.betClaimed = bet.id
+      record.save()
     }
   })
 
