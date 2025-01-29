@@ -1,6 +1,6 @@
 import { Protobuf } from "as-proto/assembly";
 import { Instructions } from "./pb/sol/transactions/v1/Instructions";
-import { Bet, Selection, Record, BetSelection } from "../generated/schema";
+import { Bet, Selection, BetSelection } from "../generated/schema";
 import { log } from "@graphprotocol/graph-ts";
 import { BigInt } from "@graphprotocol/graph-ts"
 
@@ -10,9 +10,6 @@ export function handleTriggers(bytes: Uint8Array): void {
   input.instructions.forEach(ix => {
     let accountAddr: string
     let bet: Bet | null
-    let record: Record | null
-    // let betSelection: BetSelection | null
-    // let selection: Selection | null
 
     if (ix.placeBet !== null) {
       accountAddr = ix.accounts[2];
@@ -30,11 +27,16 @@ export function handleTriggers(bytes: Uint8Array): void {
       bet.betId = 0
       bet.freeBetId = ix.placeBet!.freeBetId || 0
       bet.result = "PENDING"
+      
+      bet.placedTime = BigInt.fromI64(ix.time)
+      bet.placedTxHash = ix.txHash
+      bet.confirmedTime = new BigInt(0)
+      bet.confirmedTxHash = ""
+      bet.claimedTime = new BigInt(0)
+      bet.claimedTxHash = ""
+      bet.canceledTime = new BigInt(0)
+      bet.canceledTxHash = ""
       bet.save()
-
-      record = new Record(bet.id)
-      record.betPlaced = bet.id
-      record.save()
 
       for (let i = 0; i < ix.placeBet!.selections.length; i++) {
         const _selection = ix.placeBet!.selections[i]
@@ -67,11 +69,16 @@ export function handleTriggers(bytes: Uint8Array): void {
       bet.betId = 0
       bet.freeBetId = ix.placeFreeBet!.freeBetId || 0
       bet.result = "PENDING"
-      bet.save()
 
-      record = new Record(bet.id)
-      record.betPlaced = bet.id
-      record.save()
+      bet.placedTime = BigInt.fromI64(ix.time)
+      bet.placedTxHash = ix.txHash
+      bet.confirmedTime = new BigInt(0)
+      bet.confirmedTxHash = ""
+      bet.claimedTime = new BigInt(0)
+      bet.claimedTxHash = ""
+      bet.canceledTime = new BigInt(0)
+      bet.canceledTxHash = ""
+      bet.save()
 
       for (let i = 0; i < ix.placeFreeBet!.selections.length; i++) {
         const _selection = ix.placeFreeBet!.selections[i]
@@ -96,17 +103,10 @@ export function handleTriggers(bytes: Uint8Array): void {
       }
 
       bet.status = "CANCELED"
+      bet.canceledTime = BigInt.fromI64(ix.time)
+      bet.canceledTxHash = ix.txHash
       bet.save()
 
-      record = Record.load(accountAddr)
-
-      if (!record) {
-        log.error("Record not found for cancelBet", [])
-        return
-      }
-
-      record.betCanceled = bet.id
-      record.save()
     }
     else if (ix.confirmBet !== null) {
       accountAddr = ix.accounts[1]
@@ -119,17 +119,10 @@ export function handleTriggers(bytes: Uint8Array): void {
 
       bet.status = getStatusString(ix.confirmBet!.status)
       bet.betId = ix.confirmBet!.betId
+      bet.confirmedTime = BigInt.fromI64(ix.time)
+      bet.confirmedTxHash = ix.txHash
       bet.save()
 
-      record = Record.load(accountAddr)
-
-      if (!record) {
-        log.error("Record not found for confirmBet", [])
-        return
-      }
-
-      record.betConfirmed = bet.id
-      record.save()
     }
     else if (ix.claimBet !== 0) {
       accountAddr = ix.accounts[7]
@@ -148,17 +141,10 @@ export function handleTriggers(bytes: Uint8Array): void {
         bet.result = "LOST"
       }
       bet.status = "CLAIMED"
+      bet.claimedTime = BigInt.fromI64(ix.time)
+      bet.claimedTxHash = ix.txHash
       bet.save()
 
-      record = Record.load(accountAddr)
-
-      if (!record) {
-        log.error("Record not found for claimBet", [])
-        return
-      }
-
-      record.betClaimed = bet.id
-      record.save()
     }
   })
 

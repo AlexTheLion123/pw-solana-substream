@@ -201,20 +201,108 @@ export class Bet extends Entity {
     this.set("settledOdds", Value.fromBigInt(value));
   }
 
-  get placed(): RecordLoader {
-    return new RecordLoader("Bet", this.get("id")!.toString(), "placed");
+  get placedTime(): BigInt {
+    let value = this.get("placedTime");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
   }
 
-  get confirmed(): RecordLoader {
-    return new RecordLoader("Bet", this.get("id")!.toString(), "confirmed");
+  set placedTime(value: BigInt) {
+    this.set("placedTime", Value.fromBigInt(value));
   }
 
-  get claimed(): RecordLoader {
-    return new RecordLoader("Bet", this.get("id")!.toString(), "claimed");
+  get placedTxHash(): string {
+    let value = this.get("placedTxHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
   }
 
-  get canceled(): RecordLoader {
-    return new RecordLoader("Bet", this.get("id")!.toString(), "canceled");
+  set placedTxHash(value: string) {
+    this.set("placedTxHash", Value.fromString(value));
+  }
+
+  get confirmedTime(): BigInt {
+    let value = this.get("confirmedTime");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set confirmedTime(value: BigInt) {
+    this.set("confirmedTime", Value.fromBigInt(value));
+  }
+
+  get confirmedTxHash(): string {
+    let value = this.get("confirmedTxHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set confirmedTxHash(value: string) {
+    this.set("confirmedTxHash", Value.fromString(value));
+  }
+
+  get claimedTime(): BigInt {
+    let value = this.get("claimedTime");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set claimedTime(value: BigInt) {
+    this.set("claimedTime", Value.fromBigInt(value));
+  }
+
+  get claimedTxHash(): string {
+    let value = this.get("claimedTxHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set claimedTxHash(value: string) {
+    this.set("claimedTxHash", Value.fromString(value));
+  }
+
+  get canceledTime(): BigInt {
+    let value = this.get("canceledTime");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set canceledTime(value: BigInt) {
+    this.set("canceledTime", Value.fromBigInt(value));
+  }
+
+  get canceledTxHash(): string {
+    let value = this.get("canceledTxHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set canceledTxHash(value: string) {
+    this.set("canceledTxHash", Value.fromString(value));
   }
 }
 
@@ -360,114 +448,6 @@ export class Selection extends Entity {
   }
 }
 
-export class Record extends Entity {
-  constructor(id: string) {
-    super();
-    this.set("id", Value.fromString(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save Record entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.STRING,
-        `Entities of type Record must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
-      );
-      store.set("Record", id.toString(), this);
-    }
-  }
-
-  static loadInBlock(id: string): Record | null {
-    return changetype<Record | null>(store.get_in_block("Record", id));
-  }
-
-  static load(id: string): Record | null {
-    return changetype<Record | null>(store.get("Record", id));
-  }
-
-  get id(): string {
-    let value = this.get("id");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toString();
-    }
-  }
-
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
-  }
-
-  get betPlaced(): string | null {
-    let value = this.get("betPlaced");
-    if (!value || value.kind == ValueKind.NULL) {
-      return null;
-    } else {
-      return value.toString();
-    }
-  }
-
-  set betPlaced(value: string | null) {
-    if (!value) {
-      this.unset("betPlaced");
-    } else {
-      this.set("betPlaced", Value.fromString(<string>value));
-    }
-  }
-
-  get betConfirmed(): string | null {
-    let value = this.get("betConfirmed");
-    if (!value || value.kind == ValueKind.NULL) {
-      return null;
-    } else {
-      return value.toString();
-    }
-  }
-
-  set betConfirmed(value: string | null) {
-    if (!value) {
-      this.unset("betConfirmed");
-    } else {
-      this.set("betConfirmed", Value.fromString(<string>value));
-    }
-  }
-
-  get betClaimed(): string | null {
-    let value = this.get("betClaimed");
-    if (!value || value.kind == ValueKind.NULL) {
-      return null;
-    } else {
-      return value.toString();
-    }
-  }
-
-  set betClaimed(value: string | null) {
-    if (!value) {
-      this.unset("betClaimed");
-    } else {
-      this.set("betClaimed", Value.fromString(<string>value));
-    }
-  }
-
-  get betCanceled(): string | null {
-    let value = this.get("betCanceled");
-    if (!value || value.kind == ValueKind.NULL) {
-      return null;
-    } else {
-      return value.toString();
-    }
-  }
-
-  set betCanceled(value: string | null) {
-    if (!value) {
-      this.unset("betCanceled");
-    } else {
-      this.set("betCanceled", Value.fromString(<string>value));
-    }
-  }
-}
-
 export class BetSelectionLoader extends Entity {
   _entity: string;
   _field: string;
@@ -483,23 +463,5 @@ export class BetSelectionLoader extends Entity {
   load(): BetSelection[] {
     let value = store.loadRelated(this._entity, this._id, this._field);
     return changetype<BetSelection[]>(value);
-  }
-}
-
-export class RecordLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
-  }
-
-  load(): Record[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<Record[]>(value);
   }
 }

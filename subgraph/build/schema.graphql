@@ -14,10 +14,14 @@ type Bet @entity {
   result: Result!         
   settledOdds: BigInt!  
 
-  placed: Record @derivedFrom(field: "betPlaced")
-  confirmed: Record @derivedFrom(field: "betConfirmed")
-  claimed: Record @derivedFrom(field: "betClaimed")
-  canceled: Record @derivedFrom(field: "betCanceled")
+  placedTime: BigInt!
+  placedTxHash: String!
+  confirmedTime: BigInt!
+  confirmedTxHash: String!
+  claimedTime: BigInt!
+  claimedTxHash: String!
+  canceledTime: BigInt!
+  canceledTxHash: String!
 }
 
 type BetSelection @entity {
@@ -31,14 +35,6 @@ type Selection @entity {
   conditionId: String!
   outcomeId: String!
   bets: [BetSelection!]! @derivedFrom(field: "selection")
-}
-
-type Record @entity{
-  id: ID!
-  betPlaced: Bet
-  betConfirmed: Bet
-  betClaimed: Bet
-  betCanceled: Bet
 }
 
 enum BetStatus {
