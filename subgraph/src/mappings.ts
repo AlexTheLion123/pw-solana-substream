@@ -43,7 +43,7 @@ export function handleTriggers(bytes: Uint8Array): void {
         selection.outcomeId = _selection.outcome.toString()
         selection.save()
       
-        const betSelection = new BetSelection(accountAddr)
+        const betSelection = new BetSelection(accountAddr + _selection.condition + _selection.outcome.toString())
         betSelection.bet = accountAddr
         betSelection.selection = selection.id
         betSelection.save()
